@@ -81,6 +81,7 @@ class CardsGroup(pygame.sprite.Group):
       if self.select.column != hand_column and self.select.card.cost > owner_player.mana:
         return
       if self.select.column != hand_column:
+        self.select.handle_unfocus()
         self.select_new_focus()
         owner_player.mana -= self.select.card.cost
       self.select = None
@@ -142,13 +143,14 @@ class CardsGroup(pygame.sprite.Group):
     card_location = card_locations[self_select.row][column if self.is_player_one else 2 - column]
     if direction.can_move(card_location, self, self.game_cards):
       direction.move(card_location, self, self.game_cards)
-      if column == self.hand_column and direction is (Direction.LEFT if self.is_player_one else Direction.RIGHT):
+      if column == self.hand_column and direction == (Direction.LEFT if self.is_player_one else Direction.RIGHT):
         owner_player.mana += self_select.card.profit
         self.select_new_focus()
         self.remove(self_select)
       if self.select is not None and self.is_card_return(column, self.select):
         self.select = None
         self_select.handle_unchoose()
+      self.update_all_card_row_column()
     print_game_state(self.game_cards)
 
   def update_all_card_row_column(self):
@@ -165,7 +167,7 @@ class CardsGroup(pygame.sprite.Group):
     return card.column == 0 and column > 0 if self.is_player_one else card.column == 2 and column < 2
 
   def play_card(self, direction):
-    return direction is Direction.RIGHT if self.is_player_one else direction is Direction.LEFT
+    return direction == Direction.RIGHT if self.is_player_one else direction == Direction.LEFT
 
   def hand_move_focus(self, direction):
     focus = self.focus

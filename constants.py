@@ -7,13 +7,13 @@ source_height = 1440
 wight_scale = wight / source_wight
 height_scale = height / source_height
 
-player_one_health_x = 1040
-player_two_health_x = 1525
-player_health_y = 160
+player_one_health_x = 1005
+player_two_health_x = 1560
+player_health_y = 180
 
-player_one_mana_x = 935
-player_two_mana_x = 1630
-player_mana_y = 250
+player_one_mana_x = 880
+player_two_mana_x = 1685
+player_mana_y = 275
 
 card_row_one_up_bord = 365 * wight_scale
 card_row_two_up_bord = 698 * wight_scale

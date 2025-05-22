@@ -2,6 +2,7 @@ import random
 from enum import Enum
 import pygame
 
+import card_location
 import constants
 
 class Skill(Enum):
@@ -177,7 +178,7 @@ class CardSprite(pygame.sprite.Sprite):
     self.normal_image = image
     self.shadow_image = shadow_image
     self.select_image = select_image
-    return select_width, select_height
+    return select_height, select_width
 
   # 攻击
   def attack(self, row_cards, owner_player, targets):
@@ -196,22 +197,23 @@ class CardSprite(pygame.sprite.Sprite):
       if target.health < damage:
         damage -= target.health
         target.heart(target.health)
-        if target is CardSprite:
-          if target.column == 1:
-            other_card = targets[0][constants.get_hand_column(other_player.card_group)]
+        if isinstance(target, CardSprite):
+          if targets[0][1] is not None:
+            other_card = targets[0][1]
             heart_objects.append(other_card)
             if other_card.health < damage:
               damage -= other_card.health
               other_card.heart(other_card.health)
             else:
               other_card.heart(damage)
+          self.heart(target.card.damage)
           heart_objects.append(other_player)
           other_player.heart(damage)
       else:
         target.heart(damage)
     elif self.card.skill == Skill.PREEMPTIVE_STRIKE:
       target.heart(self.card.damage)
-      if target is CardSprite and (target.card.skill == Skill.PREEMPTIVE_STRIKE or target.health > 0):
+      if isinstance(target, CardSprite) and (target.card.skill == Skill.PREEMPTIVE_STRIKE or target.health > 0):
         self.heart(target.card.damage)
     else:
       target.heart(self.card.damage)
@@ -225,14 +227,12 @@ class CardSprite(pygame.sprite.Sprite):
     self.health -= damage
 
   def after_heart(self):
-    self.health -= 1
     if self.health <= 0:
       print("card dead")
       self.kill()
-    else:
-      self.gen_new_card_image()
 
   def update_row_column(self, row, column):
+    self.gen_new_card_image()
     self.row = row
     self.column = column
     self.rect.y = constants.row_ys[row]

@@ -20,6 +20,11 @@ def normal_can_move_down(self, card_group, cards):
     return is_row_2_any_none
   return cards[1][1] is None or cards[1][front_column] is None or is_row_2_any_none
 
+def check_back_should_move_front(row, front_column, cards):
+  if cards[row][1] is not None:
+    cards[row][1].column = front_column
+    cards[row][1], cards[row][front_column] = cards[row][front_column], cards[row][1]
+
 class CardLocation:
   def __init__(self, row):
     self.row = row
@@ -254,25 +259,19 @@ class Front(CardLocation):
     else:
       self.move_back_or_return_hand(card_group, cards)
 
-  def check_back_should_move_front(self, card_group, cards):
-    front_column = card_group.front_column
-    if cards[self.row][1] is not None:
-      cards[self.row][1].column = front_column
-      cards[self.row][1], cards[self.row][front_column] = cards[self.row][front_column], cards[self.row][1]
-
   def front_move_up_or_down_one_row(self, card_group, cards, row, front_column):
     if cards[row][front_column] is None:
       cards[self.row][front_column].column = front_column
       cards[self.row][front_column].row = row
       cards[row][front_column], cards[self.row][front_column] = cards[self.row][front_column], cards[row][front_column]
-      self.check_back_should_move_front(card_group, cards)
+      check_back_should_move_front(self.row, card_group.front_column, cards)
       return True
     if cards[row][1] is None:
       cards[row][front_column].column = 1
       cards[self.row][front_column].row = row
       cards[row][1], cards[row][front_column] = cards[row][front_column], cards[row][1]
       cards[row][front_column], cards[self.row][front_column] = cards[self.row][front_column], cards[row][front_column]
-      self.check_back_should_move_front(card_group, cards)
+      check_back_should_move_front(self.row, card_group.front_column, cards)
       return True
     return False
 
