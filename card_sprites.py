@@ -81,7 +81,7 @@ def add_soft_shadow(image, shadow_color=(139, 0, 0), shadow_size=20, alpha=80):
 
   return shadow_surface
 
-def handle_card_info(card, image):
+def handle_card_info(card, image, self_health):
   width = image.get_width()
   height = image.get_height()
   if card.skill is not None:
@@ -93,7 +93,7 @@ def handle_card_info(card, image):
     image.blit(skill, skill_rect)
   cost = constants.card_font.render(str(card.cost), True, (255, 255, 255))
   cost_rect = cost.get_rect()
-  cost_rect.center = (width * 0.227, height * 0.1)
+  cost_rect.center = (width * 0.128, height * 0.1)
   image.blit(cost, cost_rect)
   name = constants.card_font.render(card.cn, True, (135, 206, 235))
   name_rect = name.get_rect()
@@ -103,74 +103,93 @@ def handle_card_info(card, image):
   attack_rect = attack.get_rect()
   attack_rect.center = (width * 0.128, height * 0.88)
   image.blit(attack, attack_rect)
-  health = constants.card_font.render(str(card.health), True, (255, 255, 255))
+  health = constants.card_font.render(str(self_health), True, (255, 255, 255))
   health_rect = health.get_rect()
-  health_rect.center = (width * 0.8, height * 0.88)
+  health_rect.center = (width * 0.86, height * 0.88)
   image.blit(health, health_rect)
 
-class CardSprite(pygame.sprite.Sprite):
-  row = None
-  column = 0
+sale_image = pygame.image.load("./images/sale.png")
+cant_play_image = pygame.image.load("./images/cant_play.png")
+play_image = pygame.image.load("./images/play.png")
+final_sale = pygame.transform.scale(sale_image,
+  (constants.handle_wight(sale_image.get_width()), constants.handle_height(sale_image.get_height())))
+final_cant_play = pygame.transform.scale(cant_play_image,
+  (constants.handle_wight(cant_play_image.get_width()), constants.handle_height(cant_play_image.get_height())))
+final_play = pygame.transform.scale(play_image,
+  (constants.handle_wight(play_image.get_width()), constants.handle_height(play_image.get_height())))
 
-  def __init__(self, card, idx, is_left):
+class CardSprite(pygame.sprite.Sprite):
+  def __init__(self, card, idx, is_player_one):
     super().__init__()
+    self.rect = None
+    self.image = None
+    self.normal_image = None
+    self.shadow_image = None
+    self.select_image = None
     self.card = card
     self.health = card.health
     self.row = idx
-    path = "./images/card_no_skill.png"
-    image = pygame.image.load(path)
-    image = pygame.transform.scale(image,
-      (constants.handle_wight(image.get_width()), constants.handle_height(image.get_height())))
-    handle_card_info(card, image)
-    shadow_image = add_soft_shadow(image)  # 红色5像素边框
-    sale = pygame.image.load("./images/sale.png")
-    sale = pygame.transform.scale(sale,
-      (constants.handle_wight(sale.get_width()), constants.handle_height(sale.get_height())))
+    self.is_player_one = is_player_one
+    self.column = 0 if is_player_one else 2
+    select_height, select_width = self.gen_new_card_image()
+    if not is_player_one:
+      sale = pygame.transform.flip(final_sale, True, False)
+      cant_play = pygame.transform.flip(final_cant_play, True, False)
+      play = pygame.transform.flip(final_play, True, False)
+    else:
+      sale = final_sale.copy()
+      cant_play = final_cant_play.copy()
+      play = final_play.copy()
+    rect_centers = [(sale.get_width() // 2, int(select_height * 0.5)), (select_width - play.get_width() // 2,
+      int(select_height * 0.5))]
     sale_rect = sale.get_rect()
-    cant_play = pygame.image.load("./images/cant_play.png")
-    cant_play = pygame.transform.scale(cant_play,
-      (constants.handle_wight(cant_play.get_width()), constants.handle_height(cant_play.get_height())))
-    cant_play_rect = cant_play.get_rect()
-    play = pygame.image.load("./images/play.png")
-    play = pygame.transform.scale(play,
-      (constants.handle_wight(play.get_width()), constants.handle_height(play.get_height())))
+    sale_rect.center = rect_centers[0 if is_player_one else 1]
     play_rect = play.get_rect()
-    # 创建足够大的选择状态画布
-    select_width = image.get_width() + sale.get_width()  # 增加50%宽度
-    select_height = image.get_height()
-    select_image = pygame.Surface((select_width, select_height), pygame.SRCALPHA)
+    play_rect.center = rect_centers[1 if is_player_one else 0]
+    cant_play_rect = cant_play.get_rect()
+    cant_play_rect.center = rect_centers[1 if is_player_one else 0]
 
-    # 将原卡牌图像居中
-    card_rect = image.get_rect(center=(select_width // 2, select_height // 2))
-    select_image.blit(shadow_image, card_rect)
-    sale_rect.center = (sale.get_width() // 2, int(select_height * 0.5))
-    play_rect.center = (select_width - play.get_width() // 2, int(select_height * 0.5))
-    cant_play_rect.center = (select_width - cant_play.get_width() // 2, int(select_height * 0.5))
-
-    self.image = image
-    self.normal_image = image
-    self.shadow_image = shadow_image
-    self.select_image = select_image
     self.sale = sale
     self.sale_rect = sale_rect
     self.cant_play = cant_play
     self.cant_play_rect = cant_play_rect
     self.play = play
     self.play_rect = play_rect
-    self.rect = image.get_rect()
     self.rect.y = constants.row_ys[idx]
-    self.rect.x = constants.column_xs[idx][0 if is_left else 5]
+    self.rect.x = constants.column_xs[idx][0 if is_player_one else 5]
+
+  def gen_new_card_image(self):
+    path = "./images/card_no_skill.png"
+    image = pygame.image.load(path)
+    image = pygame.transform.scale(image,
+      (constants.handle_wight(image.get_width()), constants.handle_height(image.get_height())))
+    handle_card_info(self.card, image, self.health)
+    shadow_image = add_soft_shadow(image)  # 红色5像素边框
+    # 创建足够大的选择状态画布
+    select_width = image.get_width() + final_sale.get_width() * 2  # 增加50%宽度
+    select_height = image.get_height()
+    select_image = pygame.Surface((select_width, select_height), pygame.SRCALPHA)
+    # 将原卡牌图像居中
+    card_rect = image.get_rect(center=(select_width // 2, select_height // 2))
+    select_image.blit(shadow_image, card_rect)
+    self.image = image
+    self.rect = image.get_rect()
+    self.normal_image = image
+    self.shadow_image = shadow_image
+    self.select_image = select_image
+    return select_width, select_height
 
   # 攻击
   def attack(self, row_cards, owner_player, targets):
-    if self.card.skill != Skill.MAGIC_STRIKES:
+    if self.card.skill == Skill.MAGIC_STRIKES:
       owner_player.mana += 1
     if self.card.skill == Skill.HEALING_ENERGY and self.column == 1:
-      row_cards[2].health += 1
+      row_cards[owner_player.card_group.front_column].health += 1
     if self.column == 1 and self.card.skill != Skill.RANGED_ATTACKS:
       return
-    target = next((x for x in targets[0] if x is not None), None)
-    target = target if target is not None else targets[1]
+    other_player = targets[1]
+    target = targets[0][other_player.card_group.front_column]
+    target = target if target is not None else other_player
     heart_objects = [self, target]
     if self.card.skill == Skill.SWIFT_TRAMPLING:
       damage = self.card.damage
@@ -179,14 +198,13 @@ class CardSprite(pygame.sprite.Sprite):
         target.heart(target.health)
         if target is CardSprite:
           if target.column == 1:
-            other_card = targets[0][2]
+            other_card = targets[0][constants.get_hand_column(other_player.card_group)]
             heart_objects.append(other_card)
             if other_card.health < damage:
               damage -= other_card.health
               other_card.heart(other_card.health)
             else:
               other_card.heart(damage)
-          other_player = targets[1]
           heart_objects.append(other_player)
           other_player.heart(damage)
       else:
@@ -197,6 +215,8 @@ class CardSprite(pygame.sprite.Sprite):
         self.heart(target.card.damage)
     else:
       target.heart(self.card.damage)
+      if isinstance(target, CardSprite):
+        self.heart(target.card.damage)
     for heart_object in heart_objects:
       heart_object.after_heart()
 
@@ -205,14 +225,18 @@ class CardSprite(pygame.sprite.Sprite):
     self.health -= damage
 
   def after_heart(self):
+    self.health -= 1
     if self.health <= 0:
       print("card dead")
+      self.kill()
+    else:
+      self.gen_new_card_image()
 
   def update_row_column(self, row, column):
     self.row = row
     self.column = column
     self.rect.y = constants.row_ys[row]
-    self.rect.x = constants.column_xs[row][column]
+    self.rect.x = constants.column_xs[row][column if self.is_player_one else 3 + column]
 
   # 获得焦点
   def handle_focus(self):
@@ -234,9 +258,9 @@ class CardSprite(pygame.sprite.Sprite):
     self.select_image.blit(self.play if can_sale else self.cant_play,
       self.play_rect if can_sale else self.cant_play_rect)
     self.image = self.select_image
-    self.rect.x = self.rect.x - sale.get_width() // 2
+    self.rect.x = self.rect.x - sale.get_width()
 
   # 取消选择后，需要恢复原状
   def handle_unchoose(self):
     self.image = self.shadow_image
-    self.rect.x = self.rect.x + self.sale.get_width() // 2
+    self.rect.x = self.rect.x + self.sale.get_width()

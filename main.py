@@ -4,25 +4,24 @@ import constants
 from constants import wight, height
 from player_sprites import Player
 
-def wait_start():
+def show_msg_and_wait_input(text):
   global event
-  start_text = constants.message_font.render("按Enter开始", True, (255, 255, 255))
-  start_text_rect = start_text.get_rect()
+  show_text = constants.message_font.render(text, True, (255, 255, 255))
+  start_text_rect = show_text.get_rect()
   start_text_rect.center = (wight // 2, height // 2)
-  screen.blit(start_text, start_text_rect)
+  screen.blit(show_text, start_text_rect)
   pygame.display.update()
-  start_wait_input = True
-  while start_wait_input:
+  wait_input = True
+  while wait_input:
     for event in pygame.event.get():
       # 判断用户是否点击了关闭按钮
       if event.type == pygame.QUIT:
         print("退出游戏...")
         pygame.quit()
         exit()
-      # 判断用户是否按下了键盘上的Enter键
-      if event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
-        print("开始游戏...")
-        start_wait_input = False
+      # 判断用户是否按下了键盘上的Enter键或空格键
+      if event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN or event.type == pygame.K_SPACE:
+        wait_input = False
         break
 
 if __name__ == '__main__':
@@ -43,7 +42,8 @@ if __name__ == '__main__':
   pygame.mixer.music.play(-1)
 
   # 等待开始
-  wait_start()
+  show_msg_and_wait_input("按回车或空格开始游戏")
+  print("开始游戏...")
 
   screen.blit(bg, (0, 0))
   pygame.display.update()
@@ -70,24 +70,8 @@ if __name__ == '__main__':
         run = False
         break
     winner = "玩家1" if player_one.health > 0 else "玩家2"
-    end_text = constants.mana_font.render(winner + "赢了，按Enter重新来一局！", True, (255, 255, 255))
-    end_text_rect = end_text.get_rect()
-    end_text_rect.center = (wight // 2, height // 2)
-    screen.blit(end_text, end_text_rect)
-    pygame.display.update()
-    game_wait_input = True
-    while game_wait_input:
-      for event in pygame.event.get():
-        # 判断用户是否点击了关闭按钮
-        if event.type == pygame.QUIT:
-          print("退出游戏...")
-          pygame.quit()
-          exit()
-        # 判断用户是否按下了键盘上的Enter键
-        if event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
-          print("继续游戏...")
-          game_wait_input = False
-          break
+    show_msg_and_wait_input(winner + "赢了，按回车或空格重新来一局！")
+    print("继续游戏...")
     player_one = Player(20, True)
     player_two = Player(20, False)
 

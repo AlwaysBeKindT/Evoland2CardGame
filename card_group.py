@@ -35,7 +35,7 @@ card_locations = [[Hand(0), Back(0), Front(0)], [Hand(1), Back(1), Front(1)], [H
 
 def print_game_state(cards):
   for row in cards:
-    print("|".join(f"{card.card.cn[:3]:3}" if card else "   " for card in row))
+    print("|".join(f"{card.card.cn[:3]}({card.health:2})" if card else "       " for card in row))
 
 can_move_up = pygame.image.load("./images/can_move.png")
 can_move_up = pygame.transform.scale(can_move_up,
@@ -59,6 +59,8 @@ class CardsGroup(pygame.sprite.Group):
     game_cards_three = [None, None, None]
     self.game_cards = [game_cards_one, game_cards_two, game_cards_three]
     self.is_player_one = is_player_one
+    self.hand_column = 0 if is_player_one else 2
+    self.front_column = 2 if is_player_one else 0
 
   def gen_cards(self):
     cards = gen_player_hand_cards(self.is_player_one)
@@ -72,28 +74,31 @@ class CardsGroup(pygame.sprite.Group):
     self.focus.handle_focus()
 
   def choose(self, owner_player):
+    hand_column = self.hand_column
     if self.select is not None:
-      if self.select.column == 0:
+      if self.select.column == hand_column:
         self.select.handle_unchoose()
-      if self.select.column > 0 and self.select.card.cost > owner_player.mana:
+      if self.select.column != hand_column and self.select.card.cost > owner_player.mana:
         return
-      if self.select.column != 0:
+      if self.select.column != hand_column:
         self.select_new_focus()
+        owner_player.mana -= self.select.card.cost
       self.select = None
     else:
       self.select = self.focus
       # 处理选择事件
-      if self.select.column == 0:
+      if self.select.column == hand_column:
         self.select.handle_choose(owner_player.mana >= self.select.card.cost)
 
   def select_new_focus(self):
+    hand_column = self.hand_column
     for idx in range(3):
-      if self.game_cards[idx][0] is not None:
-        self.focus = self.game_cards[idx][0]
+      if self.game_cards[idx][hand_column] is not None:
+        self.focus = self.game_cards[idx][hand_column]
         break
 
   def handle_can_move_icron(self):
-    if self.select is None or self.select.column == 0:
+    if self.select is None or self.select.column == self.hand_column:
       return
     rect = self.select.rect
     # 使用卡片中心点坐标作为基准
@@ -132,23 +137,26 @@ class CardsGroup(pygame.sprite.Group):
     column = self_select.column
     if self.is_card_in_hand(self_select) and owner_player.mana < self_select.card.cost and self.play_card(direction):
       return
-    card_location = card_locations[self_select.row][column]
+    if self.is_card_in_hand(self_select) and self.play_card(direction):
+      self_select.handle_unchoose()
+    card_location = card_locations[self_select.row][column if self.is_player_one else 2 - column]
     if direction.can_move(card_location, self, self.game_cards):
       direction.move(card_location, self, self.game_cards)
-      if column == 0 and direction is Direction.LEFT:
+      if column == self.hand_column and direction is (Direction.LEFT if self.is_player_one else Direction.RIGHT):
         owner_player.mana += self_select.card.profit
         self.select_new_focus()
         self.remove(self_select)
       if self.select is not None and self.is_card_return(column, self.select):
         self.select = None
-        self.select.handle_unchoose()
-      for row in range(3):
-        for column in range(3):
-          card = self.game_cards[row][column]
-          if card is not None:
-            print(card.card.cn + "->" + str(card.row) + "," + str(card.column))
-            card.update_row_column(row, column)
+        self_select.handle_unchoose()
     print_game_state(self.game_cards)
+
+  def update_all_card_row_column(self):
+    for row in range(3):
+      for column in range(3):
+        card = self.game_cards[row][column]
+        if card is not None:
+          card.update_row_column(row, column)
 
   def is_card_in_hand(self, card):
     return card.column == 0 if self.is_player_one else card.column == 2
@@ -159,22 +167,19 @@ class CardsGroup(pygame.sprite.Group):
   def play_card(self, direction):
     return direction is Direction.RIGHT if self.is_player_one else direction is Direction.LEFT
 
-  def get_hand_card_column(self):
-    return 0 if self.is_player_one else 2
-
   def hand_move_focus(self, direction):
     focus = self.focus
-    column = self.get_hand_card_column()
+    hand_column = self.hand_column
     if direction == Direction.UP:
       for row in range(focus.row - 1, -1, -1):
-        if self.game_cards[row][column] is not None:
-          focus = self.game_cards[row][column]
+        if self.game_cards[row][hand_column] is not None:
+          focus = self.game_cards[row][hand_column]
           focus.handle_focus()
           break
     elif direction == Direction.DOWN:
       for row in range(focus.row + 1, 3):
-        if self.game_cards[row][column] is not None:
-          focus = self.game_cards[row][column]
+        if self.game_cards[row][hand_column] is not None:
+          focus = self.game_cards[row][hand_column]
           focus.handle_focus()
           break
     if self.focus != focus:
