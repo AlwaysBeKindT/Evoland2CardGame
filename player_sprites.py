@@ -47,14 +47,14 @@ class Player(pygame.sprite.Sprite):
           exit()
         if event.type != pygame.KEYDOWN:
           continue
-        if self.is_player_one and event.key == pygame.K_SPACE or (
-        not self.is_player_one) and event.key == pygame.K_RETURN:
+        key = event.key
+        if self.is_player_one and key == pygame.K_SPACE or (not self.is_player_one) and key == pygame.K_RETURN:
           self.card_group.choose(self)
           redraw_needed = True
-        redraw_needed = redraw_needed or self.is_press_key(event.key, pygame.K_a, pygame.K_LEFT, Direction.LEFT)
-        redraw_needed = redraw_needed or self.is_press_key(event.key, pygame.K_d, pygame.K_RIGHT, Direction.RIGHT)
-        redraw_needed = redraw_needed or self.is_press_key(event.key, pygame.K_w, pygame.K_UP, Direction.UP)
-        redraw_needed = redraw_needed or self.is_press_key(event.key, pygame.K_s, pygame.K_DOWN, Direction.DOWN)
+        redraw_needed = redraw_needed or self.is_press_key(key, pygame.K_a, pygame.K_LEFT, Direction.LEFT)
+        redraw_needed = redraw_needed or self.is_press_key(key, pygame.K_d, pygame.K_RIGHT, Direction.RIGHT)
+        redraw_needed = redraw_needed or self.is_press_key(key, pygame.K_w, pygame.K_UP, Direction.UP)
+        redraw_needed = redraw_needed or self.is_press_key(key, pygame.K_s, pygame.K_DOWN, Direction.DOWN)
       cards = self.card_group.game_cards
       hand_card_column = 0 if self.is_player_one else 2
       if all(row[hand_card_column] is None for row in cards) and self.card_group.select is None:
@@ -78,9 +78,6 @@ class Player(pygame.sprite.Sprite):
       if row_cards[self.card_group.front_column] is not None:
         row_cards[self.card_group.front_column].attack(row_cards, self,
           [other_player.card_group.game_cards[row], other_player])
-      card_location.check_back_should_move_front(row, self.card_group.front_column, self.card_group.game_cards)
-      card_location.check_back_should_move_front(row, other_player.card_group.front_column,
-        other_player.card_group.game_cards)
 
     for row in range(3):
       row_cards = cards[row]
@@ -94,6 +91,9 @@ class Player(pygame.sprite.Sprite):
       other_front_column = other_player.card_group.front_column
       if other_row_cards[other_front_column] is not None and other_row_cards[other_front_column].health <= 0:
         other_row_cards[other_front_column] = None
+      card_location.check_back_should_move_front(row, self.card_group.front_column, self.card_group.game_cards)
+      card_location.check_back_should_move_front(row, other_player.card_group.front_column,
+        other_player.card_group.game_cards)
 
     if self.health > 0 and other_player.health > 0:
       other_player.active(screen, self, draw_bg, clock)

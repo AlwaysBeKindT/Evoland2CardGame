@@ -36,6 +36,7 @@ card_locations = [[Hand(0), Back(0), Front(0)], [Hand(1), Back(1), Front(1)], [H
 def print_game_state(cards):
   for row in cards:
     print("|".join(f"{card.card.cn[:3]}({card.health:2})" if card else "       " for card in row))
+  print("\n")
 
 can_move_up = pygame.image.load("./images/can_move.png")
 can_move_up = pygame.transform.scale(can_move_up,

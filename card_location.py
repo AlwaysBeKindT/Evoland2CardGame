@@ -21,7 +21,7 @@ def normal_can_move_down(self, card_group, cards):
   return cards[1][1] is None or cards[1][front_column] is None or is_row_2_any_none
 
 def check_back_should_move_front(row, front_column, cards):
-  if cards[row][1] is not None:
+  if cards[row][1] is not None and cards[row][front_column] is None:
     cards[row][1].column = front_column
     cards[row][1], cards[row][front_column] = cards[row][front_column], cards[row][1]
 
