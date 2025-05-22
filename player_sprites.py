@@ -79,22 +79,6 @@ class Player(pygame.sprite.Sprite):
         row_cards[self.card_group.front_column].attack(row_cards, self,
           [other_player.card_group.game_cards[row], other_player])
 
-    for row in range(3):
-      row_cards = cards[row]
-      other_row_cards = other_player.card_group.game_cards[row]
-      if row_cards[1] is not None and row_cards[1].health <= 0:
-        row_cards[1] = None
-      if other_row_cards[1] is not None and other_row_cards[1].health <= 0:
-        other_row_cards[1] = None
-      if row_cards[self.card_group.front_column] is not None and row_cards[self.card_group.front_column].health <= 0:
-        row_cards[self.card_group.front_column] = None
-      other_front_column = other_player.card_group.front_column
-      if other_row_cards[other_front_column] is not None and other_row_cards[other_front_column].health <= 0:
-        other_row_cards[other_front_column] = None
-      card_location.check_back_should_move_front(row, self.card_group.front_column, self.card_group.game_cards)
-      card_location.check_back_should_move_front(row, other_player.card_group.front_column,
-        other_player.card_group.game_cards)
-
     if self.health > 0 and other_player.health > 0:
       other_player.active(screen, self, draw_bg, clock)
 

@@ -191,7 +191,7 @@ class CardSprite(pygame.sprite.Sprite):
     other_player = targets[1]
     target = targets[0][other_player.card_group.front_column]
     target = target if target is not None else other_player
-    heart_objects = [self, target]
+    heart_objects = {self:owner_player, target:other_player}
     if self.card.skill == Skill.SWIFT_TRAMPLING:
       damage = self.card.damage
       if target.health < damage:
@@ -200,14 +200,14 @@ class CardSprite(pygame.sprite.Sprite):
         if isinstance(target, CardSprite):
           if targets[0][1] is not None:
             other_card = targets[0][1]
-            heart_objects.append(other_card)
+            heart_objects[other_card] = other_player
             if other_card.health < damage:
               damage -= other_card.health
               other_card.heart(other_card.health)
             else:
               other_card.heart(damage)
           self.heart(target.card.damage)
-          heart_objects.append(other_player)
+          heart_objects[other_player] = other_player
           other_player.heart(damage)
       else:
         target.heart(damage)
@@ -216,10 +216,16 @@ class CardSprite(pygame.sprite.Sprite):
       if isinstance(target, CardSprite) and (target.card.skill == Skill.PREEMPTIVE_STRIKE or target.health > 0):
         self.heart(target.card.damage)
     else:
-      target.heart(self.card.damage)
+      if self.column != 1:
+        target.heart(self.card.damage)
       if isinstance(target, CardSprite):
         self.heart(target.card.damage)
-    for heart_object in heart_objects:
+    for heart_object, player in heart_objects.items():
+      if heart_object.health <= 0 and isinstance(heart_object, CardSprite):
+        player_card_group = player.card_group
+        cards = player_card_group.game_cards
+        cards[heart_object.row][heart_object.column] = None
+        card_location.check_back_should_move_front(heart_object.row, player_card_group.front_column, cards)
       heart_object.after_heart()
 
   # 受伤
