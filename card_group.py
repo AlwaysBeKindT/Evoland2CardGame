@@ -3,8 +3,58 @@ from enum import Enum
 import pygame
 
 import constants
-from card_location import Hand, Back, Front
+from card_operator import Hand, Back, Front
 from card_sprites import get_cards, CardSprite
+
+can_move_up = pygame.image.load("images/can_move.png")
+can_move_up = pygame.transform.scale(can_move_up,
+  (constants.handle_wight(can_move_up.get_width()), constants.handle_height(can_move_up.get_height())))
+can_move_up_rect = can_move_up.get_rect()
+can_move_left = pygame.transform.rotate(can_move_up, 90)
+can_move_left_rect = can_move_left.get_rect()
+can_move_down = pygame.transform.rotate(can_move_up, 180)
+can_move_down_rect = can_move_down.get_rect()
+can_move_right = pygame.transform.rotate(can_move_up, 270)
+can_move_right_rect = can_move_right.get_rect()
+
+card_locations = [[Hand(0), Back(0), Front(0)], [Hand(1), Back(1), Front(1)], [Hand(2), Back(2), Front(2)]]
+
+def print_game_state(cards):
+  for row in cards:
+    print("|".join(f"{card.card.cn[:3]:3}({card.health:2})" if card else "       " for card in row))
+  print("\n")
+
+def handle_can_move_icron(card_group):
+  if card_group.select is None or card_group.select.column == card_group.hand_column:
+    return
+  rect = card_group.select.rect
+  # 使用卡片中心点坐标作为基准
+  card_center_x = rect.centerx
+  card_center_y = rect.centery
+  # 向上箭头：卡片中心正上方
+  can_move_up_rect.center = (card_center_x, card_center_y - rect.height // 2 - can_move_up.get_height() // 2)
+  # 向下箭头：卡片中心正下方
+  can_move_down_rect.center = (card_center_x, card_center_y + rect.height // 2 + can_move_down.get_height() // 2)
+  # 向左箭头：卡片中心正左方
+  can_move_left_rect.center = (card_center_x - rect.width // 2 - can_move_left.get_width() // 2, card_center_y)
+  # 向右箭头：卡片中心正右方
+  can_move_right_rect.center = (card_center_x + rect.width // 2 + can_move_right.get_width() // 2, card_center_y)
+  dirty_rects = []
+  card_location = card_locations[card_group.select.row][card_group.select.column]
+  if card_location.can_move_up(card_group, card_group.game_cards):
+    constants.screen.blit(can_move_up, can_move_up_rect)
+    dirty_rects.append(can_move_up_rect)
+  if card_location.can_move_left(card_group, card_group.game_cards):
+    constants.screen.blit(can_move_left, can_move_left_rect)
+    dirty_rects.append(can_move_left_rect)
+  if card_location.can_move_down(card_group, card_group.game_cards):
+    constants.screen.blit(can_move_down, can_move_down_rect)
+    dirty_rects.append(can_move_down_rect)
+  if card_location.can_move_right(card_group, card_group.game_cards):
+    constants.screen.blit(can_move_right, can_move_right_rect)
+    dirty_rects.append(can_move_right_rect)
+  # 仅更新相关区域
+  pygame.display.update(dirty_rects)
 
 def gen_player_hand_cards(is_player_one):
   player_hand_cards = get_cards()
@@ -30,24 +80,6 @@ class Direction(Enum):
 
   def move(self, location, group, cards):
     getattr(location, self.move_method)(group, cards)
-
-card_locations = [[Hand(0), Back(0), Front(0)], [Hand(1), Back(1), Front(1)], [Hand(2), Back(2), Front(2)]]
-
-def print_game_state(cards):
-  for row in cards:
-    print("|".join(f"{card.card.cn[:3]:3}({card.health:2})" if card else "       " for card in row))
-  print("\n")
-
-can_move_up = pygame.image.load("./images/can_move.png")
-can_move_up = pygame.transform.scale(can_move_up,
-  (constants.handle_wight(can_move_up.get_width()), constants.handle_height(can_move_up.get_height())))
-can_move_up_rect = can_move_up.get_rect()
-can_move_left = pygame.transform.rotate(can_move_up, 90)
-can_move_left_rect = can_move_left.get_rect()
-can_move_down = pygame.transform.rotate(can_move_up, 180)
-can_move_down_rect = can_move_down.get_rect()
-can_move_right = pygame.transform.rotate(can_move_up, 270)
-can_move_right_rect = can_move_right.get_rect()
 
 class CardsGroup(pygame.sprite.Group):
   select = None
@@ -98,38 +130,6 @@ class CardsGroup(pygame.sprite.Group):
       if self.game_cards[idx][hand_column] is not None:
         self.focus = self.game_cards[idx][hand_column]
         break
-
-  def handle_can_move_icron(self):
-    if self.select is None or self.select.column == self.hand_column:
-      return
-    rect = self.select.rect
-    # 使用卡片中心点坐标作为基准
-    card_center_x = rect.centerx
-    card_center_y = rect.centery
-    # 向上箭头：卡片中心正上方
-    can_move_up_rect.center = (card_center_x, card_center_y - rect.height // 2 - can_move_up.get_height() // 2)
-    # 向下箭头：卡片中心正下方
-    can_move_down_rect.center = (card_center_x, card_center_y + rect.height // 2 + can_move_down.get_height() // 2)
-    # 向左箭头：卡片中心正左方
-    can_move_left_rect.center = (card_center_x - rect.width // 2 - can_move_left.get_width() // 2, card_center_y)
-    # 向右箭头：卡片中心正右方
-    can_move_right_rect.center = (card_center_x + rect.width // 2 + can_move_right.get_width() // 2, card_center_y)
-    dirty_rects = []
-    card_location = card_locations[self.select.row][self.select.column]
-    if card_location.can_move_up(self, self.game_cards):
-      constants.screen.blit(can_move_up, can_move_up_rect)
-      dirty_rects.append(can_move_up_rect)
-    if card_location.can_move_left(self, self.game_cards):
-      constants.screen.blit(can_move_left, can_move_left_rect)
-      dirty_rects.append(can_move_left_rect)
-    if card_location.can_move_down(self, self.game_cards):
-      constants.screen.blit(can_move_down, can_move_down_rect)
-      dirty_rects.append(can_move_down_rect)
-    if card_location.can_move_right(self, self.game_cards):
-      constants.screen.blit(can_move_right, can_move_right_rect)
-      dirty_rects.append(can_move_right_rect)
-    # 仅更新相关区域
-    pygame.display.update(dirty_rects)
 
   def move_choose(self, owner_player, direction):
     self_select = self.select

@@ -240,8 +240,8 @@ class Front(CardLocation):
       hand_column = card_group.hand_column
       cards[self_row][self_column].column = hand_column
       cards[self_row][self_column].row = cards[self_row][self_column].source_row
-      cards[cards[self_row][self_column].source_row][hand_column], cards[self_row][self_column] = (cards[self_row][self_column],
-        cards[cards[self_row][self_column].source_row][hand_column])
+      cards[cards[self_row][self_column].source_row][hand_column], cards[self_row][self_column] = (
+        cards[self_row][self_column], cards[cards[self_row][self_column].source_row][hand_column])
 
   def move_left(self, card_group, cards):
     if not self.can_move_left(card_group, cards):

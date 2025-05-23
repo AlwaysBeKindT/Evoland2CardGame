@@ -1,6 +1,6 @@
 import pygame
 
-import card_location
+import card_group
 import constants
 from card_group import CardsGroup, Direction
 
@@ -9,6 +9,17 @@ def draw_num(screen, font, num, x, y):
   text_rect = text.get_rect()
   text_rect.center = (x * constants.wight_scale, y * constants.height_scale)
   screen.blit(text, text_rect)
+
+def update_screen(player_one, other_player, draw_bg, screen):
+  draw_bg()  # 先绘制背景
+  player_one.card_group.update()  # 更新精灵状态
+  player_one.card_group.draw(screen)  # 绘制精灵
+  card_group.handle_can_move_icron(player_one.card_group)
+  player_one.draw(screen)  # 绘制玩家状态
+  other_player.card_group.update()  # 更新精灵状态
+  other_player.card_group.draw(screen)  # 绘制精灵
+  other_player.draw(screen)
+  pygame.display.flip()  # 统一更新显示
 
 class Player(pygame.sprite.Sprite):
   def __init__(self, health, is_player_one):
@@ -36,7 +47,7 @@ class Player(pygame.sprite.Sprite):
     self.card_group.gen_cards()
     self.card_group.update_all_card_row_column()
     other_player.card_group.update_all_card_row_column()
-    self.update_screen(draw_bg, other_player, screen)
+    update_screen(self, other_player, draw_bg, screen)
     # 控制是否需要重绘
     redraw_needed = True
     while True:
@@ -65,7 +76,7 @@ class Player(pygame.sprite.Sprite):
         return
       # 优化后的渲染流程
       if redraw_needed:
-        self.update_screen(draw_bg, other_player, screen)
+        update_screen(self, other_player, draw_bg, screen)
         redraw_needed = False
       # 设置屏幕刷新帧率
       clock.tick(60)
@@ -78,20 +89,6 @@ class Player(pygame.sprite.Sprite):
       if row_cards[self.card_group.front_column] is not None:
         row_cards[self.card_group.front_column].attack(row_cards, self,
           [other_player.card_group.game_cards[row], other_player])
-
-    if self.health > 0 and other_player.health > 0:
-      other_player.active(screen, self, draw_bg, clock)
-
-  def update_screen(self, draw_bg, other_player, screen):
-    draw_bg()  # 先绘制背景
-    self.card_group.update()  # 更新精灵状态
-    self.card_group.draw(screen)  # 绘制精灵
-    self.card_group.handle_can_move_icron()
-    self.draw(screen)  # 绘制玩家状态
-    other_player.card_group.update()  # 更新精灵状态
-    other_player.card_group.draw(screen)  # 绘制精灵
-    other_player.draw(screen)
-    pygame.display.flip()  # 统一更新显示
 
   # 受伤
   def heart(self, damage):

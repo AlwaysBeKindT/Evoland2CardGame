@@ -1,38 +1,20 @@
 import random
 from enum import Enum
+
 import pygame
 
-import card_location
+import card_operator
 import constants
 
-class Skill(Enum):
-  RANGED_ATTACKS = ("远程攻击:即使在后排也能攻击",)
-  PREEMPTIVE_STRIKE = ("先发制人:首先造成伤害",)
-  SWIFT_TRAMPLING = ("迅猛践踏:继续对下个目标造成伤害",)
-  MAGIC_STRIKES = ("魔法出击:每回合能返还一个马纳",)
-  HEALING_ENERGY = ("治疗能量:稀有,可以治疗前方的卡牌",)
-
-class Card(Enum):
-  KU_LUO = ("库洛", "C01", 7, 3, Skill.RANGED_ATTACKS, 5, 10)
-  FEI_NA = ("菲娜", "C02", 5, 2, Skill.HEALING_ENERGY, 2, 8)
-  TIAN_E_RONG = ("天鹅绒", "C03", 4, 2, None, 3, 8)
-  MENG_NUO_SI = ("蒙诺斯", "C04", 8, 3, Skill.SWIFT_TRAMPLING, 5, 9)
-  HUNTER = ("猎人", "C20", 0, 1, Skill.MAGIC_STRIKES, 1, 1)
-  SLAM = ("史莱姆", "C45", 1, 1, None, 1, 1)
-  MOUSE = ("老鼠", "C46", 2, 1, None, 2, 1)
-  BAT = ("蝙蝠", "C51", 1, 1, None, 1, 2)
-  MUSHROOM_PEOPLE = ("狂人", "C52", 3, 2, Skill.SWIFT_TRAMPLING, 2, 2)
-  SQUIRREL = ("松鼠", "C53", 2, 1, Skill.RANGED_ATTACKS, 1, 2)
-
-  def __init__(self, cn, code, cost, profit, skill, damage, health):
-    super().__init__()
-    self.cn = cn
-    self.code = code
-    self.cost = cost
-    self.profit = profit
-    self.skill = skill
-    self.damage = damage
-    self.health = health
+sale_image = pygame.image.load("images/sale.png")
+cant_play_image = pygame.image.load("images/cant_play.png")
+play_image = pygame.image.load("images/play.png")
+final_sale = pygame.transform.scale(sale_image,
+  (constants.handle_wight(sale_image.get_width()), constants.handle_height(sale_image.get_height())))
+final_cant_play = pygame.transform.scale(cant_play_image,
+  (constants.handle_wight(cant_play_image.get_width()), constants.handle_height(cant_play_image.get_height())))
+final_play = pygame.transform.scale(play_image,
+  (constants.handle_wight(play_image.get_width()), constants.handle_height(play_image.get_height())))
 
 def get_card_by_code_number(random_id):
   # 遍历所有Card枚举成员
@@ -86,7 +68,7 @@ def handle_card_info(card, image, self_health):
   width = image.get_width()
   height = image.get_height()
   if card.skill is not None:
-    skill = pygame.image.load("./images/" + str.lower(card.skill.name) + ".png")
+    skill = pygame.image.load("images/" + str.lower(card.skill.name) + ".png")
     skill = pygame.transform.scale(skill,
       (constants.handle_wight(skill.get_width()), constants.handle_height(skill.get_height())))
     skill_rect = skill.get_rect()
@@ -109,15 +91,34 @@ def handle_card_info(card, image, self_health):
   health_rect.center = (width * 0.86, height * 0.88)
   image.blit(health, health_rect)
 
-sale_image = pygame.image.load("./images/sale.png")
-cant_play_image = pygame.image.load("./images/cant_play.png")
-play_image = pygame.image.load("./images/play.png")
-final_sale = pygame.transform.scale(sale_image,
-  (constants.handle_wight(sale_image.get_width()), constants.handle_height(sale_image.get_height())))
-final_cant_play = pygame.transform.scale(cant_play_image,
-  (constants.handle_wight(cant_play_image.get_width()), constants.handle_height(cant_play_image.get_height())))
-final_play = pygame.transform.scale(play_image,
-  (constants.handle_wight(play_image.get_width()), constants.handle_height(play_image.get_height())))
+class Skill(Enum):
+  RANGED_ATTACKS = ("远程攻击:即使在后排也能攻击",)
+  PREEMPTIVE_STRIKE = ("先发制人:首先造成伤害",)
+  SWIFT_TRAMPLING = ("迅猛践踏:继续对下个目标造成伤害",)
+  MAGIC_STRIKES = ("魔法出击:每回合能返还一个马纳",)
+  HEALING_ENERGY = ("治疗能量:稀有,可以治疗前方的卡牌",)
+
+class Card(Enum):
+  KU_LUO = ("库洛", "C01", 7, 3, Skill.RANGED_ATTACKS, 5, 10)
+  FEI_NA = ("菲娜", "C02", 5, 2, Skill.HEALING_ENERGY, 2, 8)
+  TIAN_E_RONG = ("天鹅绒", "C03", 4, 2, None, 3, 8)
+  MENG_NUO_SI = ("蒙诺斯", "C04", 8, 3, Skill.SWIFT_TRAMPLING, 5, 9)
+  HUNTER = ("猎人", "C20", 0, 1, Skill.MAGIC_STRIKES, 1, 1)
+  SLAM = ("史莱姆", "C45", 1, 1, None, 1, 1)
+  MOUSE = ("老鼠", "C46", 2, 1, None, 2, 1)
+  BAT = ("蝙蝠", "C51", 1, 1, None, 1, 2)
+  MUSHROOM_PEOPLE = ("狂人", "C52", 3, 2, Skill.SWIFT_TRAMPLING, 2, 2)
+  SQUIRREL = ("松鼠", "C53", 2, 1, Skill.RANGED_ATTACKS, 1, 2)
+
+  def __init__(self, cn, code, cost, profit, skill, damage, health):
+    super().__init__()
+    self.cn = cn
+    self.code = code
+    self.cost = cost
+    self.profit = profit
+    self.skill = skill
+    self.damage = damage
+    self.health = health
 
 class CardSprite(pygame.sprite.Sprite):
   def __init__(self, card, idx, is_player_one):
@@ -141,8 +142,8 @@ class CardSprite(pygame.sprite.Sprite):
       sale = final_sale.copy()
       cant_play = final_cant_play.copy()
       play = final_play.copy()
-    rect_centers = [(sale.get_width() // 2, int(select_height * 0.5)), (select_width - play.get_width() // 2,
-      int(select_height * 0.5))]
+    rect_centers = [(sale.get_width() // 2, int(select_height * 0.5)),
+      (select_width - play.get_width() // 2, int(select_height * 0.5))]
     sale_rect = sale.get_rect()
     sale_rect.center = rect_centers[0 if is_player_one else 1]
     play_rect = play.get_rect()
@@ -160,7 +161,7 @@ class CardSprite(pygame.sprite.Sprite):
     self.rect.x = constants.column_xs[idx][0 if is_player_one else 5]
 
   def gen_new_card_image(self):
-    path = "./images/card_no_skill.png"
+    path = "images/card_no_skill.png"
     image = pygame.image.load(path)
     image = pygame.transform.scale(image,
       (constants.handle_wight(image.get_width()), constants.handle_height(image.get_height())))
@@ -191,7 +192,7 @@ class CardSprite(pygame.sprite.Sprite):
     other_player = targets[1]
     target = targets[0][other_player.card_group.front_column]
     target = target if target is not None else other_player
-    heart_objects = {self:owner_player, target:other_player}
+    heart_objects = {self: owner_player, target: other_player}
     if self.card.skill == Skill.SWIFT_TRAMPLING:
       damage = self.card.damage
       if target.health < damage:
@@ -225,7 +226,7 @@ class CardSprite(pygame.sprite.Sprite):
         player_card_group = player.card_group
         cards = player_card_group.game_cards
         cards[heart_object.row][heart_object.column] = None
-        card_location.check_back_should_move_front(heart_object.row, player_card_group.front_column, cards)
+        card_operator.check_back_should_move_front(heart_object.row, player_card_group.front_column, cards)
       heart_object.after_heart()
 
   # 受伤

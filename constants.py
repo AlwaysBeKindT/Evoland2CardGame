@@ -1,5 +1,3 @@
-from enum import Enum
-
 wight = 1280
 height = 720
 source_wight = 2560
@@ -56,18 +54,14 @@ player_two_hand_card_two_y = card_row_two_up_bord
 player_two_hand_card_three_x = 1910 * height_scale
 player_two_hand_card_three_y = card_row_three_up_bord
 
-column_one_xs = [player_one_hand_card_one_x, player_one_back_card_one_x,
-                 player_one_front_card_one_x, player_two_front_card_one_x,
-                 player_two_back_card_one_x, player_two_hand_card_one_x]
-column_two_xs = [player_one_hand_card_two_x, player_one_back_card_two_x,
-              player_one_front_card_two_x, player_two_front_card_two_x,
-              player_two_back_card_two_x, player_two_hand_card_two_x]
-column_three_xs = [player_one_hand_card_three_x, player_one_back_card_three_x,
-                player_one_front_card_three_x, player_two_front_card_three_x,
-                player_two_back_card_three_x, player_two_hand_card_three_x]
+column_one_xs = [player_one_hand_card_one_x, player_one_back_card_one_x, player_one_front_card_one_x,
+  player_two_front_card_one_x, player_two_back_card_one_x, player_two_hand_card_one_x]
+column_two_xs = [player_one_hand_card_two_x, player_one_back_card_two_x, player_one_front_card_two_x,
+  player_two_front_card_two_x, player_two_back_card_two_x, player_two_hand_card_two_x]
+column_three_xs = [player_one_hand_card_three_x, player_one_back_card_three_x, player_one_front_card_three_x,
+  player_two_front_card_three_x, player_two_back_card_three_x, player_two_hand_card_three_x]
 column_xs = [column_one_xs, column_two_xs, column_three_xs]
-row_ys = [card_row_one_up_bord, card_row_two_up_bord,
-             card_row_three_up_bord]
+row_ys = [card_row_one_up_bord, card_row_two_up_bord, card_row_three_up_bord]
 
 health_font = None
 mana_font = None
@@ -75,8 +69,10 @@ card_font = None
 message_font = None
 screen = None
 
-def handle_wight(wight):
-  return wight * wight_scale
+player_health = 20
 
-def handle_height(height):
-  return height * height_scale
+def handle_wight(wight_arg):
+  return wight_arg * wight_scale
+
+def handle_height(height_arg):
+  return height_arg * height_scale
