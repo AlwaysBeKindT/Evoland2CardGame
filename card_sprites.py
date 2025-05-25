@@ -9,6 +9,11 @@ import constants
 sale_image = pygame.image.load("images/sale.png")
 cant_play_image = pygame.image.load("images/cant_play.png")
 play_image = pygame.image.load("images/play.png")
+hps=[]
+for idx in range(0, 13):
+  hps.append(pygame.image.load(f"images/hp/{idx}.png"))
+hps = [pygame.transform.scale(img, (constants.handle_wight(img.get_width()), constants.handle_height(img.get_height())))
+  for img in hps]
 final_sale = pygame.transform.scale(sale_image,
   (constants.handle_wight(sale_image.get_width()), constants.handle_height(sale_image.get_height())))
 final_cant_play = pygame.transform.scale(cant_play_image,
@@ -223,12 +228,21 @@ class CardSprite(pygame.sprite.Sprite):
     self.rect.x = constants.column_xs[0 if is_player_one else 5]
 
   def gen_new_card_image(self):
-    # path = "images/card_no_skill.png"
     path = f"images/cards/{self.card.code}.png"
     # 修改后的初始化代码
     image = pygame.image.load(path)
     image = pygame.transform.scale(image,
       (constants.handle_wight(image.get_width()), constants.handle_height(image.get_height())))
+    self.image = image
+    self.normal_image = image
+    self.rect = image.get_rect()
+
+    if self.health != self.card.health:
+      # 获取对应血量图标（假设hps是预加载的图标列表）
+      hps_image = hps[self.health]
+      # 刷新复合图像
+      self.refresh_image(hps_image)
+      return None
 
     # 生成阴影图像（保持与原图相同尺寸）
     shadow_image = add_soft_shadow(image)
@@ -255,20 +269,10 @@ class CardSprite(pygame.sprite.Sprite):
     select_image.blit(final_play,
       (base_center_x + image.get_width() // 2, base_center_y - final_play.get_height() // 2))
 
-    # 统一所有图像的rect中心点
-    self.rect = image.get_rect()  # 原始图像的位置基准
-    self.rect_center = self.rect.center  # 存储基准中心坐标
-
-    # 设置所有图像的rect为中心对齐
-    self.image = image
     self.normal_image = image
     self.shadow_image = shadow_image
     self.select_image = select_image
-
     # 确保所有surface使用相同的中心坐标
-    self.normal_rect = self.normal_image.get_rect(center=self.rect_center)
-    self.shadow_rect = self.shadow_image.get_rect(center=self.rect_center)
-    self.select_rect = self.select_image.get_rect(center=self.rect_center)
     return select_height, select_width
 
   # 攻击
@@ -278,9 +282,9 @@ class CardSprite(pygame.sprite.Sprite):
     if self.card.skill == Skill.HEALING_ENERGY and self.column == 1:
       row_cards[owner_player.card_group.front_column].health += 1
     if self.column == 1 and self.card.skill != Skill.RANGED_ATTACKS:
-      return {}
+      return
     if self.card.damage == 0:
-      return {}
+      return
     other_player = targets[1]
     target = targets[0][other_player.card_group.front_column]
     target = target if target is not None else other_player
@@ -319,12 +323,29 @@ class CardSprite(pygame.sprite.Sprite):
         cards = player_card_group.game_cards
         cards[heart_object.row][heart_object.column] = None
         card_operator.check_back_should_move_front(heart_object.row, player_card_group.front_column, cards)
-    return heart_objects
+      heart_object.after_heart()
 
   # 受伤
   def heart(self, heart_by, damage):
     print(f"card {self.card.code}-{self.card.cn} health {self.health} heart_by {heart_by.card.cn} damage {damage}")
     self.health -= damage
+
+  def refresh_image(self, hps_image):
+    """生成新的复合图像"""
+    # 创建带透明通道的新画布（尺寸与原始图像相同）
+    image = pygame.Surface(self.image.get_size(), pygame.SRCALPHA).convert_alpha()
+    # 绘制基础图像
+    image.blit(self.image, (0, 0))
+
+    # 如果有血量图标则叠加
+    pos = (image.get_width() - hps_image.get_width() - constants.handle_wight(2),
+      image.get_height() - hps_image.get_height() - constants.handle_height(2))
+    image.blit(hps_image, pos)
+
+    # 更新碰撞区域（保持原位置）
+    new_rect = image.get_rect(center=self.rect.center)
+    self.image = image
+    self.rect = new_rect
 
   def after_heart(self):
     if self.health <= 0:

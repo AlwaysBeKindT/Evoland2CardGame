@@ -84,17 +84,13 @@ class Player(pygame.sprite.Sprite):
       clock.tick(60)
 
     cards = self.card_group.game_cards
-    heart_objects = {}
     for row in range(3):
       row_cards = cards[row]
       if row_cards[1] is not None:
-        heart_objects = {
-          **row_cards[1].attack(row_cards, self, [other_player.card_group.game_cards[row], other_player])}
+        row_cards[1].attack(row_cards, self, [other_player.card_group.game_cards[row], other_player])
       if row_cards[self.card_group.front_column] is not None:
-        heart_objects = {**row_cards[self.card_group.front_column].attack(row_cards, self,
-          [other_player.card_group.game_cards[row], other_player])}
-      for heart_object, player in heart_objects.items():
-        heart_object.after_heart()
+        row_cards[self.card_group.front_column].attack(row_cards, self,
+          [other_player.card_group.game_cards[row], other_player])
 
   # 受伤
   def heart(self, heart_by, damage):
