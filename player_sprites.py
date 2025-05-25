@@ -48,6 +48,8 @@ class Player(pygame.sprite.Sprite):
     self.card_group.update_all_card_row_column()
     other_player.card_group.update_all_card_row_column()
     update_screen(self, other_player, draw_bg, screen)
+    print("p1" if self.is_player_one else "p2")
+    card_group.print_game_state(self.card_group.game_cards)
     # 控制是否需要重绘
     redraw_needed = True
     while True:
@@ -82,18 +84,25 @@ class Player(pygame.sprite.Sprite):
       clock.tick(60)
 
     cards = self.card_group.game_cards
+    heart_objects = {}
     for row in range(3):
       row_cards = cards[row]
       if row_cards[1] is not None:
-        row_cards[1].attack(row_cards, self, [other_player.card_group.game_cards[row], other_player])
+        heart_objects = {
+          **row_cards[1].attack(row_cards, self, [other_player.card_group.game_cards[row], other_player])}
       if row_cards[self.card_group.front_column] is not None:
-        row_cards[self.card_group.front_column].attack(row_cards, self,
-          [other_player.card_group.game_cards[row], other_player])
+        heart_objects = {**row_cards[self.card_group.front_column].attack(row_cards, self,
+          [other_player.card_group.game_cards[row], other_player])}
+      for heart_object, player in heart_objects.items():
+        heart_object.after_heart()
 
   # 受伤
-  def heart(self, damage):
+  def heart(self, heart_by, damage):
+    print(f"player {'one' if self.is_player_one else 'two'} health {self.health} heart_by {heart_by.card.cn} damage"
+          f" {damage}")
     self.health -= damage
 
   def after_heart(self):
     if self.health <= 0:
-      print("player dead")
+      self.health = 0
+      print(f"player {'one' if self.is_player_one else 'two'} dead")

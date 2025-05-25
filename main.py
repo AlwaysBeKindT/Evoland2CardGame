@@ -4,8 +4,8 @@ import constants
 from constants import wight, height
 from player_sprites import Player, update_screen
 
-def show_msg_and_wait_input(text):
-  show_text = constants.message_font.render(text, True, (255, 255, 255))
+def show_msg_and_wait_input(text, color=(255, 255, 255)):
+  show_text = constants.message_font.render(text, True, color)
   start_text_rect = show_text.get_rect()
   start_text_rect.center = (wight // 2, height // 2)
   screen.blit(show_text, start_text_rect)
@@ -50,7 +50,7 @@ if __name__ == '__main__':
   player_one = Player(constants.player_health, True)
   player_two = Player(constants.player_health, False)
 
-  pygame.time.wait(1000)
+  pygame.time.wait(100)
   run = True
   while run:
     player_one.update()
